@@ -20,7 +20,7 @@ Jan_2016[Jan_2016$X2016_01.water == 0,]<- NA
 
 ggplot(Jan_2016) +
   geom_tile(aes(x=x, y=y, fill=X2016_01.water-1), na.rm = T) +
-  scale_fill_viridis_c("Likelihood of Water", direction=-1) +
+  scale_fill_viridis_c("% Water Cover", direction=-1) +
   labs(x="Longitude", y="Latitude") +
   coord_equal() +
   theme_bw() +
