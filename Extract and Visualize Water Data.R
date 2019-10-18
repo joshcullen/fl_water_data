@@ -1,48 +1,27 @@
 library(raster)
-library(ggplot2)
 library(dplyr)
 library(purrr)
+library(ggplot2)
 
+### All data downloaded at 5 km resolution to match that of the snail kite data
 
-Jan_2018<- raster("2018_01.tif")
-Jan_2018_utm<- Jan_2018
-crs(Jan_2018_utm)<- CRS("+init=epsg:32617")
+mypath <- '/Users/joshcullen/Documents/Snail Kite Project/Data/R Scripts/fl_water_data/FL Water History_GSW'
 
-
-getValues(Jan_2018)
-
-Jan_2018.df<- as.data.frame(Jan_2018, xy=TRUE)
-Jan_2018.df$X2018_01<- as.factor(Jan_2018.df$X2018_01)
-names(Jan_2018.df)[3]<- "Jan_2018"
-
-
-
-ggplot(Jan_2018.df) +
-  geom_tile(aes(x=x,y=y,fill=Jan_2018)) +
-  coord_equal() +
-  scale_fill_manual("",values=c('#ffffff', '#fffcb8', '#0905ff'), labels=c("NA","Land","Water")) +
-  theme_bw() +
-  theme(panel.grid = element_blank())
-
-
-
-
-
-mypath <- "~/Documents/Snail Kite Project/Data/Global Surface Water Data/FL Water History_GSW"
-
-# To extract all pixel values (the result is a list, each slot is a raster)
-water.hist<- list.files(mypath, full.names = T) %>%
+# Load all raster files
+water.hist<- list.files(mypath,full.names = T) %>%  #creates list
   map(raster)
-
-water.hist.brick<- brick(water.hist)
+water.hist.brick<- brick(water.hist)  #creates RasterBrick
 plot(water.hist.brick)
 
-# To extract max, min, mean and sd for each raster (the result is a data.frame)
-list.files(mypath,full.names = T) %>%
-  map(raster) %>%
-  map_df(function(x){
-    data.frame(
-      mx=raster::maxValue(x),
-      mn=raster::minValue(x),
-      avg=mean(x[],na.rm=T),
-      stdev=sd(x[],na.rm=T))})
+
+#Example of better viz in ggplot
+Jan_2016<- as.data.frame(water.hist.brick$X2016_01.water, xy=T)
+Jan_2016[Jan_2016$X2016_01.water == 0,]<- NA
+
+ggplot(Jan_2016) +
+  geom_tile(aes(x=x, y=y, fill=X2016_01.water-1), na.rm = T) +
+  scale_fill_viridis_c("Likelihood of Water", direction=-1) +
+  labs(x="Longitude", y="Latitude") +
+  coord_equal() +
+  theme_bw() +
+  theme(panel.grid = element_blank())
